@@ -19,18 +19,29 @@
 //==============================================================================
 /**
 */
-class YetiFilterAudioProcessorEditor  : public AudioProcessorEditor
+class YetiFilterAudioProcessorEditor  : public AudioProcessorEditor,
+										public Slider::Listener,
+										private Timer
 {
 public:
+	PPQComponent PPQComp;
+
     YetiFilterAudioProcessorEditor (YetiFilterAudioProcessor&);
     ~YetiFilterAudioProcessorEditor();
 
     //==============================================================================
     void paint (Graphics&) override;
     void resized() override;
+	void sliderValueChanged(Slider* slider) override;
+	void timerCallback() override;
 
 private:
-	PPQComponent PPQComp;
+	Slider b1;
+	Label b1l;
+	Slider b2;
+	Label b2l;
+
+
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     YetiFilterAudioProcessor& processor;
