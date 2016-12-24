@@ -11,6 +11,7 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include <cmath>
 
 
 //==============================================================================
@@ -26,6 +27,10 @@ YetiFilterAudioProcessor::YetiFilterAudioProcessor()
                        )
 #endif
 {
+	b01 = 0.99;
+	currentBeat = 0;
+	nextBeat = 0;
+	beatIncrement = 0.25;
 }
 
 YetiFilterAudioProcessor::~YetiFilterAudioProcessor()
@@ -74,15 +79,18 @@ int YetiFilterAudioProcessor::getCurrentProgram()
 
 void YetiFilterAudioProcessor::setCurrentProgram (int index)
 {
+	index = 1;
 }
 
 const String YetiFilterAudioProcessor::getProgramName (int index)
 {
+	index = 1;
     return String();
 }
 
 void YetiFilterAudioProcessor::changeProgramName (int index, const String& newName)
 {
+	index = 1;
 }
 
 //==============================================================================
@@ -126,29 +134,31 @@ void YetiFilterAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
 {
     const int totalNumInputChannels  = getTotalNumInputChannels();
     const int totalNumOutputChannels = getTotalNumOutputChannels();
-
+	
 	playhead = getPlayHead();
 	playhead->getCurrentPosition(playheadInfo);
-	
-    // In case we have more outputs than inputs, this code clears any output
-    // channels that didn't contain input data, (because these aren't
-    // guaranteed to be empty - they may contain garbage).
-    // This is here to avoid people getting screaming feedback
-    // when they first compile a plugin, but obviously you don't need to keep
-    // this code if your algorithm always overwrites all the output channels.
+	currentBeat = playheadInfo.ppqPosition;
+	if (currentBeat >= nextBeat)
+	{
+		// do stuff
+		nextBeat += beatIncrement;
+	}
+
 	for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
 	{
 		buffer.clear(i, 0, buffer.getNumSamples());
 	}
 
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
+	int numSamples = buffer.getNumSamples();
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
-        float* channelData = buffer.getWritePointer (channel);
+        float* channelData = buffer.getWritePointer(channel);
 
-        // ..do something to the data...
-
+		for (int i = 0; i < numSamples; i++)
+		{
+			filter.setCutoff(b01);
+			channelData[i] = filter.process(channelData[i]);
+		}
     }
 }
 
@@ -160,7 +170,7 @@ bool YetiFilterAudioProcessor::hasEditor() const
 
 AudioProcessorEditor* YetiFilterAudioProcessor::createEditor()
 {
-    return new YetiFilterAudioProcessorEditor (*this);
+	return new YetiFilterAudioProcessorEditor(*this);
 }
 
 //==============================================================================
