@@ -11,6 +11,7 @@
 #ifndef PLUGINPROCESSOR_H_INCLUDED
 #define PLUGINPROCESSOR_H_INCLUDED
 
+#include "Filter.h"
 #include "../JuceLibraryCode/JuceHeader.h"
 
 
@@ -20,6 +21,9 @@
 class YetiFilterAudioProcessor  : public AudioProcessor
 {
 public:
+	Filter filter;
+	double b01;
+
 	AudioPlayHead::CurrentPositionInfo playheadInfo;
     //==============================================================================
     YetiFilterAudioProcessor();
@@ -58,6 +62,9 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
 private:
+	double currentBeat;
+	double nextBeat;
+	double beatIncrement;
 	AudioPlayHead* playhead;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (YetiFilterAudioProcessor)
